@@ -57,21 +57,14 @@ void mov(CPU *cpu,int registers,int value) {
 }
 void layo(CPU *cpu) {
     printf("Registers: ");
-    /*if (madvise(cpu->registers, NUM_REGISTERS * sizeof(int), MADV_SEQUENTIAL) != 0) {
-        printf("Madvise error on registers");
-        exit(EXIT_FAILURE);
-    }*/
-   //himnakanum chi ashxatum
+    
     for (int i = 0; i < NUM_REGISTERS; i++) {
         printf("R%d: %d, ", i, cpu->registers[i]);
     }
+    cpu->IP++;
     printf("WSR: %d, IP: %d\n",cpu->WSR,cpu->IP);
     printf("Memory: [");
-    /*if (madvise(cpu->memory, MEMORY_SIZE * sizeof(int), MADV_SEQUENTIAL) != 0) {
-        perror("Madvise error on memory");
-        exit(EXIT_FAILURE);
-    }*/
-   // himnakanum chi ashxatum
+
     for(int i = 0; i < MEMORY_SIZE; i++) {
         printf("%d,",cpu->memory[i]);
     }
@@ -80,6 +73,8 @@ void layo(CPU *cpu) {
 void load(CPU *cpu, int r, int mem_addr) {
     if (mem_addr >= 0 && mem_addr < MEMORY_SIZE) {
         cpu->registers[r] = cpu->memory[mem_addr];
+        cpu->IP++;
+        printf("R%d: %d IP: %d\n",r,cpu->memory[mem_addr],cpu->IP);
     } else {
         printf("Invalid memory address\n");
     }
@@ -87,6 +82,8 @@ void load(CPU *cpu, int r, int mem_addr) {
 void store(CPU *cpu, int register1, int mem_addr) {
     if (mem_addr >= 0 && mem_addr < MEMORY_SIZE) {
         cpu->memory[mem_addr] = cpu->registers[register1];
+        cpu->IP++;
+        printf("Memory[%d]: %d IP: %d\n",mem_addr,cpu->registers[register1],cpu->IP);
     } else {
         printf("Invalid memory address\n");
     }
@@ -100,11 +97,35 @@ void discard(CPU *cpu, int count) {
     }
 }
 void execute_instruction(CPU *cpu,char *command) {
-   char operation[MAX_OPERATION_NAME];
-   memset(operation,0,sizeof(operation));
-   int register1 = 0, register2 = 0;
-   int value = 0,count = 0;
-
+    char operation[MAX_OPERATION_NAME];
+    memset(operation,0,sizeof(operation));
+    int register1 = 0, register2 = 0;
+    int value = 0,count = 0;
+    char *for_duplicate = strdup(command);
+    int i = 0;
+    char *token = strtok(for_duplicate, " ");
+    while (token != NULL) {
+        i++;
+        token = strtok(NULL, " ");
+    }
+    if(i >= 4) {
+        printf("Invalid instruction format: (Too Many Arguments)\n");
+        free(for_duplicate);
+        return;
+    }else if(strncmp(command,"DISC", 4) == 0) {
+        if(i != 2) {
+            printf("Invalid instruction format: (DISC argument count)\n");
+            free(for_duplicate);
+            return;
+        }
+    }else if(strncmp(command, "LAYO", 4) == 0) {
+        if(i != 1) {
+            printf("Invalid instruction format: (LAYO argument count)\n");
+            free(for_duplicate);
+            return;
+        }
+    }
+    free(for_duplicate);
     if (sscanf(command, "%s R%d, R%d", operation, &register1,&register2) == 3) {
         if (strncmp(operation, "ADD", 3) == 0 && flag == 1) {
             add(cpu,register1, register2);

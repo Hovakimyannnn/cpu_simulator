@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
+#include <ctype.h>
 #include <sys/mman.h>
 
 #define COMMAND_SIZE 128
